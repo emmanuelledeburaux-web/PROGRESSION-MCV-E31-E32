@@ -349,12 +349,12 @@ function render(){
   var h='<div class="wrap"'+(bcs?' style="'+bcs+'"':'')+'>';
   h+='<header class="top"><div><div class="eyebrow">Bac Pro Métiers du Commerce et de la Vente · option A · '+esc(S.annee)+'</div><h1>Travaux significatifs E31 · E32 — '+esc(S.classe)+'</h1><div class="sub">Saisie rapide pour le prof · rang, badges et auto-évaluation pour l\'élève.</div><div class="byline">Créatrice : Emmanuelle Deburaux'+(S.prof?' · Professeur(e) : '+esc(S.prof):'')+'</div></div>';
   h+='<div class="topright"><span class="seg small" role="group" aria-label="Thème d\'affichage"><button data-theme-set="auto" aria-pressed="'+(ui.theme==='auto')+'">Auto</button><button data-theme-set="light" aria-pressed="'+(ui.theme==='light')+'">Clair</button><button data-theme-set="dark" aria-pressed="'+(ui.theme==='dark')+'">Sombre</button></span>';
-  if(ui.canEdit){var n=nbChanges();h+='<span class="savebar"><span class="savestate'+(n?' dirty':'')+'" role="status">'+saveLabel(n)+'</span><button class="btn primary" data-act="save" '+(ui.publishing?'disabled':'')+'>'+(ui.publishing?'Enregistrement…':'Enregistrer')+'</button></span>';
+  if(ui.canEdit){var n=nbChanges()+(STANDALONE&&ui.fileDirty?1:0);h+='<span class="savebar"><span class="savestate'+(isDirtyUI(n)?' dirty':'')+'" role="status">'+saveLabel(n)+'</span><button class="btn primary" data-act="save" '+(ui.publishing?'disabled':'')+'>'+(ui.publishing?'Enregistrement…':'Enregistrer')+'</button></span>';
     if(STANDALONE)h+='<span class="savebar"><button class="btn small" data-act="dlhtml">Télécharger la grille à jour (.html)</button><button class="btn small" data-act="dlstudent">Version élèves (.html)</button></span>';}
   h+='</div></header>';
   var stash=ss('mcv-stash');if(ui.canEdit&&stash&&!ui.stashHandled){try{var st=JSON.parse(stash);if(st.updated!==saved.updated||JSON.stringify(st)!==JSON.stringify(saved)){h+='<div class="banner"><b>Des modifications non enregistrées ont été retrouvées sur cet appareil.</b><button class="btn small" data-act="restore">Les récupérer</button><button class="btn small" data-act="dropstash">Les ignorer</button></div>';}}catch(e){}}
   if(STANDALONE&&ui.canEdit&&ui.storageOK===false)h+='<div class="banner warn"><b>Ce navigateur bloque l\'enregistrement automatique de ce fichier.</b> Vos saisies seront perdues à la fermeture : cliquez sur « Télécharger la grille à jour » avant de quitter, ou ouvrez le fichier avec Chrome ou Edge.</div>';
-  if(STANDALONE&&ui.canEdit)h+='<div class="banner"><span><b>Fichier sur votre ordinateur.</b> Chaque saisie est enregistrée automatiquement dans ce navigateur. Pour les conserver ailleurs ou les transmettre, cliquez sur « Télécharger la grille à jour ». « Version élèves » crée un fichier en lecture seule à déposer sur l\'ENT.</span></div>';
+  if(STANDALONE&&ui.canEdit)h+=fileBanner();
   if(ui.canEdit){
     var tabs=[['grille','Grille de la classe'],['corriger','Corriger un travail'],['fiche','Fiche élève'],['synthese','Synthèse'],['reglages','Référentiel & réglages']];
     h+='<nav class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-tab="'+t[0]+'" aria-selected="'+(ui.tab===t[0])+'">'+t[1]+'</button>';}).join('')+'</nav>';
@@ -615,7 +615,7 @@ function setCom(key,txt){txt=(txt||'').trim();if(txt)S.com[key]=txt;else delete 
 function focusCell(r,c){var b=document.querySelector('button[data-cell][data-r="'+r+'"][data-c="'+c+'"]');if(b){b.focus();b.scrollIntoView({block:'nearest',inline:'nearest'});}}
 function autoLocal(){var nx=JSON.parse(JSON.stringify(S));nx.updated=new Date().toISOString();var ok=false;try{localStorage.setItem(LSKEY,JSON.stringify(nx));ok=localStorage.getItem(LSKEY)!==null;}catch(e){ok=false;}
   ui.storageOK=ok;if(ok){S.updated=nx.updated;saved=JSON.parse(JSON.stringify(S));var d=new Date();ui.lastAuto=('0'+d.getHours()).slice(-2)+'h'+('0'+d.getMinutes()).slice(-2);ss('mcv-stash',null);}return ok;}
-function stashLocal(){if(STANDALONE&&ui.canEdit){if(autoLocal())return;}if(dirty())ss('mcv-stash',JSON.stringify(S));else ss('mcv-stash',null);}
+function stashLocal(){if(STANDALONE&&ui.canEdit){scheduleFile();if(autoLocal())return;}if(dirty())ss('mcv-stash',JSON.stringify(S));else ss('mcv-stash',null);}
 
 root.addEventListener('click',function(ev){
   var t=ev.target.closest('button,[data-tab]');if(!t)return;
@@ -647,8 +647,10 @@ root.addEventListener('click',function(ev){
   else if(act==='addeleve'){S.seq++;S.eleves.push({id:'e'+S.seq+'x',nom:'NOUVEL Élève'});stashLocal();render();var el2=document.getElementById('el-e'+S.seq+'x');if(el2){el2.focus();el2.select();}}
   else if(act==='pasteeleves'){var ta=document.getElementById('paste-eleves');var names=(ta?ta.value:'').split(/\r?\n/).map(function(s){return s.split(/\t|;/)[0].trim();}).filter(Boolean);var ex={};S.eleves.forEach(function(e){ex[e.nom.toLowerCase()]=1;});var n=0;names.forEach(function(nm){if(ex[nm.toLowerCase()])return;ex[nm.toLowerCase()]=1;S.seq++;S.eleves.push({id:'e'+S.seq+'x',nom:nm});n++;});stashLocal();render();toast(n?n+' élève'+(n>1?'s':'')+' ajouté'+(n>1?'s':''):'Aucun nouvel élève (doublons ignorés)');}
   else if(act==='resetcolors'){var O={'C1.1':'#1D7A86','C1.2':'#B7791F','C1.3':'#C0567E','C2.1':'#9A5B34','C2.2':'#6E7330','C2.3':'#9C3D54','C2.4':'#4F6273'};S.blocs.forEach(function(b){b.comps.forEach(function(c){if(O[c.id])c.couleur=O[c.id];});});delete S.blocCol;stashLocal();render();toast('Couleurs d\'origine rétablies');}
-  else if(act==='dlhtml'){var nx=JSON.parse(JSON.stringify(S));nx.updated=new Date().toISOString();download('Grille_MCV_E31_E32_'+slugName()+'.html',buildDoc(nx));toast('Grille téléchargée : gardez ce fichier');}
-  else if(act==='dlstudent'){var sv=JSON.parse(JSON.stringify(S));sv.readonly=true;sv.updated=new Date().toISOString();download('Grille_MCV_eleves_'+slugName()+'.html',buildDoc(sv));toast('Version élèves téléchargée (lecture seule)');}
+  else if(act==='dlhtml'){var nx=JSON.parse(JSON.stringify(S));nx.updated=new Date().toISOString();download('Grille_MCV_E31_E32_'+slugName()+'.html',buildFileDoc(nx));toast('Grille téléchargée : gardez ce fichier');}
+  else if(act==='dlstudent'){var sv=JSON.parse(JSON.stringify(S));sv.readonly=true;sv.updated=new Date().toISOString();download('Grille_MCV_eleves_'+slugName()+'.html',buildFileDoc(sv));toast('Version élèves téléchargée (lecture seule)');}
+  else if(act==='linkfile'){linkFile();}
+  else if(act==='regrant'){writeFile(true).then(function(ok){render();toast(ok?'Enregistrement autorisé':'Accord refusé');});}
   else if(act==='save')save();
   else if(act==='restore'){try{S=JSON.parse(ss('mcv-stash'));}catch(e){}ui.stashHandled=true;render();}
   else if(act==='dropstash'){ss('mcv-stash',null);ui.stashHandled=true;render();}
@@ -676,8 +678,10 @@ root.addEventListener('input',function(ev){var t=ev.target,v=t.value;
   else if(t.hasAttribute('data-ccom')){var kk=t.getAttribute('data-ccom');if(v.trim())S.com[kk]=v;else delete S.com[kk];}
   else return;
   stashLocal();updateSaveBar();});
-function saveLabel(n){if(n)return n+' modification'+(n>1?'s':'')+' non enregistrée'+(n>1?'s':'');if(STANDALONE&&ui.lastAuto)return 'Enregistré automatiquement à '+ui.lastAuto;return 'Tout est enregistré';}
-function updateSaveBar(){var n=nbChanges();var s=document.querySelector('.savestate'),b=document.querySelector('[data-act="save"]');if(!s||!b)return;s.textContent=saveLabel(n);s.className='savestate'+(n?' dirty':'');b.disabled=!!ui.publishing;}
+function saveLabel(n){if(STANDALONE){if(!FSA)return ui.fileDirty?'Pensez à télécharger la grille à jour':'Enregistré dans ce navigateur';if(!ui.fh)return 'Pas encore enregistré dans un fichier';if(ui.needPerm)return 'En attente de votre accord';if(ui.fileDirty)return 'Écriture dans le fichier…';if(ui.fileSaved)return 'Enregistré dans le fichier à '+ui.fileSaved;return 'Fichier lié : '+ui.fh.name;}
+  if(n)return n+' modification'+(n>1?'s':'')+' non enregistrée'+(n>1?'s':'');return 'Tout est enregistré';}
+function isDirtyUI(n){return STANDALONE?(FSA?(!ui.fh||ui.needPerm||ui.fileDirty):!!ui.fileDirty):n>0;}
+function updateSaveBar(){var n=nbChanges()+(STANDALONE&&ui.fileDirty?1:0);var s=document.querySelector('.savestate'),b=document.querySelector('[data-act="save"]');if(!s||!b)return;s.textContent=saveLabel(n);s.className='savestate'+(isDirtyUI(n)?' dirty':'');b.disabled=!!ui.publishing;}
 document.addEventListener('click',function(ev){if(!picker)return;var b=ev.target.closest('.picker button');
   if(b&&b.hasAttribute('data-gocorr')){ui.corr=b.getAttribute('data-gocorr');ui.tab='corriger';closePicker();render();window.scrollTo(0,0);var f0=document.querySelector('.cb');if(f0)f0.focus();return;}
   if(b&&picker._col){var tid=picker._col,val=b.hasAttribute('data-fillnr')?'NR':b.hasAttribute('data-fillabs')?'ABS':null;if(val){var n=0;S.eleves.forEach(function(e){var k=e.id+'|'+tid;if(!S.notes[k]){setNote(k,val);n++;}});closePicker();render();toast(n+' case'+(n>1?'s':'')+' passée'+(n>1?'s':'')+' en '+val+' (cliquez une case pour corriger)');}return;}
@@ -707,11 +711,27 @@ window.addEventListener('scroll',closePicker,true);
 window.addEventListener('resize',closePicker);
 
 /* ---------- enregistrement ---------- */
+function buildFileDoc(state){var json=JSON.stringify(state).replace(/</g,'\\u003c');
+  return '<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="author" content="Emmanuelle Deburaux">\n<title>Grille MCV E31 E32 — Emmanuelle Deburaux</title>\n'+HEAD_LINKS+'\n<style>:root{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>\n<style id="css">'+CSS_SRC+'</style>\n</head>\n<body><div id="app-root"></div>\n<script type="application/json" id="state">'+json+'<\/script>\n<script id="app">'+APP_SRC+'<\/script>\n</body>\n</html>\n';}
+var FSA=(typeof window.showSaveFilePicker==='function');
+function idb(op,val){return new Promise(function(res){try{var rq=indexedDB.open('mcv-grille',1);rq.onupgradeneeded=function(){rq.result.createObjectStore('h');};rq.onerror=function(){res(null);};rq.onsuccess=function(){try{var tx=rq.result.transaction('h',op==='get'?'readonly':'readwrite');var st=tx.objectStore('h');var r=op==='get'?st.get('file'):st.put(val,'file');r.onsuccess=function(){res(op==='get'?r.result:true);};r.onerror=function(){res(null);};}catch(e){res(null);}};}catch(e){res(null);}});}
+function hhmm(){var d=new Date();return ('0'+d.getHours()).slice(-2)+'h'+('0'+d.getMinutes()).slice(-2);}
+function fileBanner(){
+  if(!FSA)return '<div class="banner warn"><span><b>Attention : ce navigateur ne sait pas enregistrer dans le fichier.</b> Les notes ne sont gardées que dans le navigateur et disparaissent si l\'historique est effacé. Ouvrez ce fichier avec <b>Chrome</b> ou <b>Edge</b>, ou cliquez sur « Télécharger la grille à jour » à la fin de chaque séance.</span></div>';
+  if(!ui.fh)return '<div class="banner warn"><span><b>Étape indispensable : reliez la grille à un fichier de votre ordinateur.</b> Tant que ce n\'est pas fait, les notes ne sont gardées que dans le navigateur (perdues si l\'historique est effacé). Cliquez sur « Enregistrer dans un fichier », choisissez un dossier (Documents, clé USB, Drive…) et gardez ce nom de fichier. Ensuite tout s\'enregistre dedans automatiquement.</span><button class="btn primary" data-act="linkfile">Enregistrer dans un fichier</button></div>';
+  if(ui.needPerm)return '<div class="banner warn"><span><b>Fichier lié : '+esc(ui.fh.name)+'.</b> Le navigateur demande votre accord pour écrire dedans à nouveau.</span><button class="btn primary" data-act="regrant">Autoriser l\'enregistrement</button></div>';
+  return '<div class="banner"><span><b>Enregistrement automatique dans « '+esc(ui.fh.name)+' ».</b> Pour reprendre votre travail, rouvrez ce fichier-là (et non l\'ancien téléchargement). « Version élèves » crée un fichier en lecture seule pour l\'ENT.</span><button class="btn small" data-act="linkfile">Changer de fichier</button></div>';}
+async function writeFile(ask){if(!ui.fh)return false;try{var o={mode:'readwrite'};var p=ui.fh.queryPermission?await ui.fh.queryPermission(o):'granted';if(p!=='granted'&&ask&&ui.fh.requestPermission)p=await ui.fh.requestPermission(o);if(p!=='granted'){ui.needPerm=true;return false;}
+  ui.needPerm=false;var nx=JSON.parse(JSON.stringify(S));nx.updated=S.updated||new Date().toISOString();var w=await ui.fh.createWritable();await w.write(buildFileDoc(nx));await w.close();ui.fileSaved=hhmm();ui.fileDirty=false;return true;}catch(e){ui.fileErr=String(e&&e.message||e);return false;}}
+async function linkFile(){if(!FSA){download('Grille_MCV_E31_E32_'+slugName()+'.html',buildFileDoc(S));return;}
+  try{var fh=await window.showSaveFilePicker({suggestedName:'Grille_MCV_E31_E32_'+String(S.classe||'classe').replace(/[^A-Za-z0-9]+/g,'_')+'.html',types:[{description:'Page HTML',accept:{'text/html':['.html']}}]});ui.fh=fh;idb('put',fh);var ok=await writeFile(true);render();toast(ok?'Grille enregistrée dans « '+fh.name+' » : rouvrez ce fichier la prochaine fois':'Écriture impossible dans ce fichier');}catch(e){if(e&&e.name!=='AbortError')toast('Enregistrement annulé : '+(e.message||e));}}
+var fileT=null;function scheduleFile(){ui.fileDirty=true;clearTimeout(fileT);if(ui.fh&&!ui.needPerm)fileT=setTimeout(function(){writeFile(false).then(function(){updateSaveBar();var b=document.querySelector('.banner');if(ui.needPerm)render();});},1500);}
 function buildDoc(state){var json=JSON.stringify(state).replace(/</g,'\\u003c');
   return SKEL+'<title>Grille MCV E31 E32</title>\n'+HEAD_LINKS+'\n<style id="css">'+CSS_SRC+'</style>\n<div id="app-root"></div>\n<script type="application/json" id="state">'+json+'<\/script>\n<script id="app">'+APP_SRC+'<\/script></body></html>';}
 function download(name,text){try{var b=new Blob([text],{type:'text/html;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);}catch(e){toast('Téléchargement impossible dans ce navigateur.');}}
 function slugName(){return String(S.classe||'classe').replace(/[^A-Za-z0-9]+/g,'_')+'_'+today();}
-function save(){if(STANDALONE){var ok=autoLocal();render();toast(ok?'Enregistré dans ce navigateur':'Ce navigateur refuse l\'enregistrement : cliquez sur « Télécharger la grille à jour »');return;}
+function save(){if(STANDALONE){autoLocal();if(!FSA){download('Grille_MCV_E31_E32_'+slugName()+'.html',buildFileDoc(S));ui.fileDirty=false;render();toast('Grille téléchargée : rouvrez ce fichier la prochaine fois');return;}
+    if(!ui.fh){linkFile();return;}clearTimeout(fileT);writeFile(true).then(function(ok){render();toast(ok?'Enregistré dans « '+ui.fh.name+' »':'Écriture refusée : cliquez sur « Autoriser l\'enregistrement »');});return;}
   if(!artifactNS){toast('Enregistrement impossible ici : ouvrez la grille dans Claude avec votre compte.');return;}
   ui.publishing=true;updateSaveBar();
   var next=JSON.parse(JSON.stringify(S));next.updated=new Date().toISOString();
@@ -722,11 +742,12 @@ function save(){if(STANDALONE){var ok=autoLocal();render();toast(ok?'Enregistré
     else{toast('Échec de l\'enregistrement ('+(c||'erreur')+'). Réessayez dans un instant.');updateSaveBar();}});}
 var toastT=null;
 function toast(msg){var el=document.querySelector('.toast');if(!el){el=document.createElement('div');el.className='toast';el.setAttribute('role','status');document.body.appendChild(el);}el.textContent=msg;clearTimeout(toastT);toastT=setTimeout(function(){el.remove();},3800);}
-window.addEventListener('beforeunload',function(){if(dirty())stashLocal();});
+window.addEventListener('beforeunload',function(ev){if(dirty())stashLocal();if(STANDALONE&&ui.canEdit&&ui.fileDirty){ev.preventDefault();ev.returnValue='';return '';}});
 
 /* ---------- démarrage ---------- */
 render();
-if(STANDALONE){var raw=ls(LSKEY);if(raw&&!saved.readonly){try{var loc=JSON.parse(raw);if(loc&&loc.blocs&&(loc.updated||'')>(saved.updated||'')){loc.hist=loc.hist||{};loc.com=loc.com||{};saved=loc;S=JSON.parse(JSON.stringify(loc));}}catch(e){}}ui.canEdit=!saved.readonly;render();}
+if(STANDALONE){var raw=ls(LSKEY);if(raw&&!saved.readonly){try{var loc=JSON.parse(raw);if(loc&&loc.blocs&&(loc.updated||'')>(saved.updated||'')){loc.hist=loc.hist||{};loc.com=loc.com||{};saved=loc;S=JSON.parse(JSON.stringify(loc));}}catch(e){}}ui.canEdit=!saved.readonly;render();
+  if(ui.canEdit&&FSA){idb('get').then(function(fh){if(fh&&fh.createWritable){ui.fh=fh;var q=fh.queryPermission?fh.queryPermission({mode:'readwrite'}):Promise.resolve('granted');q.then(function(p){ui.needPerm=(p!=='granted');render();}).catch(function(){ui.needPerm=true;render();});}});}}
 function boot(tries){if(STANDALONE)return;
  if(!(window.claude&&window.claude.use)){if(tries<30)setTimeout(function(){boot(tries+1);},150);return;}
   Promise.all([window.claude.use('artifact').catch(function(){return null;}),window.claude.use('user').catch(function(){return null;})]).then(function(r){

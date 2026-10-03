@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="author" content="Emmanuelle Deburaux">
-<title>Grille MCV E31 E32 — Emmanuelle Deburaux</title>
+<title>Travaux significatifs E31 &amp; E32</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
@@ -285,6 +285,7 @@ table.tgrid{border-collapse:separate;border-spacing:0;font-size:.82rem}
 .ptab td.pout{font-size:1rem;font-variant-numeric:tabular-nums}
 .ptab{min-width:620px}
 .banner.warn{border-color:var(--n1);color:var(--warn-ink);background:var(--warn-bg)}
+.subtitle{font-family:var(--font-display);font-weight:600;font-size:clamp(1rem,2vw,1.2rem);color:var(--ink-soft);margin-top:2px}
 .byline{font-size:.84rem;font-weight:700;color:var(--ink-soft);margin-top:4px}
 .credit{border-top:1px solid var(--line);padding-top:12px;font-size:.82rem;color:var(--ink-faint);text-align:center}
 .credit b{color:var(--ink-soft)}
@@ -347,7 +348,7 @@ function render(){
   var keepScroll=null,gw=document.querySelector('.gridwrap');if(gw)keepScroll=[gw.scrollLeft,gw.scrollTop];
   var bcs='';if(S.blocCol){if(S.blocCol.E31)bcs+='--e31:'+S.blocCol.E31+';';if(S.blocCol.E32)bcs+='--e32:'+S.blocCol.E32+';';}
   var h='<div class="wrap"'+(bcs?' style="'+bcs+'"':'')+'>';
-  h+='<header class="top"><div><div class="eyebrow">Bac Pro Métiers du Commerce et de la Vente · option A · '+esc(S.annee)+'</div><h1>Travaux significatifs E31 · E32 — '+esc(S.classe)+'</h1><div class="sub">Saisie rapide pour le prof · rang, badges et auto-évaluation pour l\'élève.</div><div class="byline">Créatrice : Emmanuelle Deburaux'+(S.prof?' · Professeur(e) : '+esc(S.prof):'')+'</div></div>';
+  h+='<header class="top"><div><h1>Travaux significatifs E31 &amp; E32</h1><div class="subtitle">Bac Pro Métiers du Commerce et de la Vente option A</div><div class="sub">'+esc(S.classe)+' · '+esc(S.annee)+'</div><div class="byline">Créatrice : Emmanuelle Deburaux'+(S.prof?' · Professeur(e) : '+esc(S.prof):'')+'</div></div>';
   h+='<div class="topright"><span class="seg small" role="group" aria-label="Thème d\'affichage"><button data-theme-set="auto" aria-pressed="'+(ui.theme==='auto')+'">Auto</button><button data-theme-set="light" aria-pressed="'+(ui.theme==='light')+'">Clair</button><button data-theme-set="dark" aria-pressed="'+(ui.theme==='dark')+'">Sombre</button></span>';
   if(ui.canEdit){var n=nbChanges()+(STANDALONE&&ui.fileDirty?1:0);h+='<span class="savebar"><span class="savestate'+(isDirtyUI(n)?' dirty':'')+'" role="status">'+saveLabel(n)+'</span><button class="btn primary" data-act="save" '+(ui.publishing?'disabled':'')+'>'+(ui.publishing?'Enregistrement…':'Enregistrer')+'</button></span>';
     if(STANDALONE)h+='<span class="savebar"><button class="btn small" data-act="dlhtml">Télécharger la grille à jour (.html)</button><button class="btn small" data-act="dlstudent">Version élèves (.html)</button></span>';}
@@ -579,6 +580,7 @@ function reglagesHTML(){
         h+='<div class="edline" style="padding-left:18px"><button class="btn small" data-addtrav="'+s.id+'">+ Ajouter un travail</button></div></div>';});
       h+='<div class="edline"><button class="btn small" data-addsav="'+c.id+'">+ Ajouter une sous-compétence en '+c.id+'</button></div></div>';});});
   h+='</div></section>';
+  h+='<section class="panel"><h2>Reprendre une grille existante</h2><p class="note">Pour passer à une nouvelle version de la grille sans perdre vos notes : choisissez votre ancien fichier de grille (.html). Élèves, niveaux, commentaires, référentiel et réglages sont repris.</p><div class="edline"><label class="btn small" for="import-file">Choisir une ancienne grille…</label><input type="file" id="import-file" accept=".html,.htm,.json,text/html,application/json" style="position:absolute;width:1px;height:1px;opacity:0"></div></section>';
   h+='<section class="panel"><div class="row" style="justify-content:space-between"><h2>Élèves ('+S.eleves.length+')</h2>'+(S.eleves.length?(ui.confirm==='clear:all'?'<span class="confirm">Retirer les '+S.eleves.length+' élèves et tous leurs niveaux et commentaires ?<button class="btn small danger" data-act="clearall">Oui, vider la liste</button><button class="btn small" data-act="nodel">Annuler</button></span>':'<button class="btn small danger" data-askdel="clear:all">Vider la liste d\'élèves</button>'):'')+'</div><p class="note">Pour passer la grille à un·e collègue ou à une nouvelle classe : videz la liste (les niveaux saisis partent avec), collez la nouvelle liste ci-dessous, puis enregistrez. Le référentiel, le barème et les couleurs sont conservés.</p>';
   S.eleves.forEach(function(e){h+='<div class="edline"><input type="text" id="el-'+e.id+'" data-eleve="'+e.id+'" value="'+esc(e.nom)+'">'+delBtn('eleve',e.id)+'</div>';});
   h+='<div class="edline"><button class="btn small" data-act="addeleve">+ Ajouter un élève</button></div><label for="paste-eleves"><b>Coller une liste</b> <span class="note">(un nom par ligne, depuis Pronote ou un tableur ; les doublons sont ignorés)</span></label><textarea class="paste" id="paste-eleves" placeholder="NOM Prénom&#10;NOM Prénom"></textarea><div class="edline"><button class="btn small" data-act="pasteeleves">Ajouter ces élèves</button></div></section>';
@@ -615,6 +617,11 @@ function setCom(key,txt){txt=(txt||'').trim();if(txt)S.com[key]=txt;else delete 
 function focusCell(r,c){var b=document.querySelector('button[data-cell][data-r="'+r+'"][data-c="'+c+'"]');if(b){b.focus();b.scrollIntoView({block:'nearest',inline:'nearest'});}}
 function autoLocal(){var nx=JSON.parse(JSON.stringify(S));nx.updated=new Date().toISOString();var ok=false;try{localStorage.setItem(LSKEY,JSON.stringify(nx));ok=localStorage.getItem(LSKEY)!==null;}catch(e){ok=false;}
   ui.storageOK=ok;if(ok){S.updated=nx.updated;saved=JSON.parse(JSON.stringify(S));var d=new Date();ui.lastAuto=('0'+d.getHours()).slice(-2)+'h'+('0'+d.getMinutes()).slice(-2);ss('mcv-stash',null);}return ok;}
+function importGrid(txt){var js=null;try{var m=txt.match(/<script type="application\/json" id="state">([\s\S]*?)<\/script>/);js=JSON.parse(m?m[1]:txt);}catch(e){js=null;}
+  if(!js||!js.blocs||!js.eleves){toast('Ce fichier n\'est pas une grille Travaux significatifs');return;}
+  js.hist=js.hist||{};js.com=js.com||{};delete js.readonly;var keepUpd=S.updated;S=js;if(!S.updated||S.updated<keepUpd)S.updated=keepUpd;ui.eleve=null;ui.confirm=null;
+  stashLocal();if(!STANDALONE)saved=JSON.parse(JSON.stringify(saved));render();
+  toast('Grille reprise : '+S.eleves.length+' élèves, '+Object.keys(S.notes||{}).length+' niveaux'+(STANDALONE?'':' — cliquez sur Enregistrer'));}
 function stashLocal(){if(STANDALONE&&ui.canEdit){scheduleFile();if(autoLocal())return;}if(dirty())ss('mcv-stash',JSON.stringify(S));else ss('mcv-stash',null);}
 
 root.addEventListener('click',function(ev){
@@ -649,6 +656,7 @@ root.addEventListener('click',function(ev){
   else if(act==='resetcolors'){var O={'C1.1':'#1D7A86','C1.2':'#B7791F','C1.3':'#C0567E','C2.1':'#9A5B34','C2.2':'#6E7330','C2.3':'#9C3D54','C2.4':'#4F6273'};S.blocs.forEach(function(b){b.comps.forEach(function(c){if(O[c.id])c.couleur=O[c.id];});});delete S.blocCol;stashLocal();render();toast('Couleurs d\'origine rétablies');}
   else if(act==='dlhtml'){var nx=JSON.parse(JSON.stringify(S));nx.updated=new Date().toISOString();download('Grille_MCV_E31_E32_'+slugName()+'.html',buildFileDoc(nx));toast('Grille téléchargée : gardez ce fichier');}
   else if(act==='dlstudent'){var sv=JSON.parse(JSON.stringify(S));sv.readonly=true;sv.updated=new Date().toISOString();download('Grille_MCV_eleves_'+slugName()+'.html',buildFileDoc(sv));toast('Version élèves téléchargée (lecture seule)');}
+  else if(act==='importfile'){var inp=document.createElement('input');inp.type='file';inp.accept='.html,.htm,text/html';inp.onchange=function(){var f=inp.files&&inp.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var m=String(rd.result).match(/<script type="application\/json" id="state">([\s\S]*?)<\/script>/);if(!m)throw 0;var st=JSON.parse(m[1]);if(!st.blocs||!st.eleves)throw 0;st.hist=st.hist||{};st.com=st.com||{};delete st.readonly;S=st;stashLocal();render();toast('Grille reprise : '+st.eleves.length+' élèves, '+Object.keys(st.notes||{}).length+' niveaux. Pensez à enregistrer.');}catch(e){toast('Ce fichier n\'est pas une grille Travaux significatifs.');}};rd.readAsText(f);};inp.click();}
   else if(act==='linkfile'){linkFile();}
   else if(act==='regrant'){writeFile(true).then(function(ok){render();toast(ok?'Enregistrement autorisé':'Accord refusé');});}
   else if(act==='save')save();
@@ -662,6 +670,7 @@ root.addEventListener('click',function(ev){
 function fallbackCopy(txt){var ta=document.createElement('textarea');ta.value=txt;ta.setAttribute('aria-label','Tableau à copier');ta.style.cssText='position:fixed;left:16px;right:16px;bottom:16px;height:120px;z-index:70';document.body.appendChild(ta);ta.select();toast('Texte sélectionné : faites Ctrl+C');setTimeout(function(){ta.remove();},8000);}
 root.addEventListener('change',function(ev){var t=ev.target;
   if(t.hasAttribute('data-ccol')||t.hasAttribute('data-bcol')){render();return;}
+  if(t.id==='import-file'){var f=t.files&&t.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){importGrid(String(rd.result));t.value='';};rd.onerror=function(){toast('Lecture du fichier impossible');};rd.readAsText(f);return;}
   if(t.id==='pr-sel'){ui.ptrav=t.value;render();return;}
   if(t.hasAttribute('data-pcode')){S.pcodes=S.pcodes||{abs:'A',nr:'R'};S.pcodes[t.getAttribute('data-pcode')]=t.value;stashLocal();render();return;}
   if(t.hasAttribute('data-pnote')){var kk=t.getAttribute('data-pnote'),lv=+S.notes[kk],x=parseFloat(String(t.value).replace(',','.'));if(LV[lv]&&!isNaN(x)){S.pnote=S.pnote||{};S.pnote[kk]=clampLv(lv,x);if(S.pnote[kk]!==x)toast('Note ramenée dans la fourchette '+RANGE[lv][0]+'–'+RANGE[lv][1]);stashLocal();render();}return;}
@@ -712,13 +721,13 @@ window.addEventListener('resize',closePicker);
 
 /* ---------- enregistrement ---------- */
 function buildFileDoc(state){var json=JSON.stringify(state).replace(/</g,'\\u003c');
-  return '<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="author" content="Emmanuelle Deburaux">\n<title>Grille MCV E31 E32 — Emmanuelle Deburaux</title>\n'+HEAD_LINKS+'\n<style>:root{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>\n<style id="css">'+CSS_SRC+'</style>\n</head>\n<body><div id="app-root"></div>\n<script type="application/json" id="state">'+json+'<\/script>\n<script id="app">'+APP_SRC+'<\/script>\n</body>\n</html>\n';}
+  return '<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="author" content="Emmanuelle Deburaux">\n<title>Travaux significatifs E31 &amp; E32</title>\n'+HEAD_LINKS+'\n<style>:root{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>\n<style id="css">'+CSS_SRC+'</style>\n</head>\n<body><div id="app-root"></div>\n<script type="application/json" id="state">'+json+'<\/script>\n<script id="app">'+APP_SRC+'<\/script>\n</body>\n</html>\n';}
 var FSA=(typeof window.showSaveFilePicker==='function');
 function idb(op,val){return new Promise(function(res){try{var rq=indexedDB.open('mcv-grille',1);rq.onupgradeneeded=function(){rq.result.createObjectStore('h');};rq.onerror=function(){res(null);};rq.onsuccess=function(){try{var tx=rq.result.transaction('h',op==='get'?'readonly':'readwrite');var st=tx.objectStore('h');var r=op==='get'?st.get('file'):st.put(val,'file');r.onsuccess=function(){res(op==='get'?r.result:true);};r.onerror=function(){res(null);};}catch(e){res(null);}};}catch(e){res(null);}});}
 function hhmm(){var d=new Date();return ('0'+d.getHours()).slice(-2)+'h'+('0'+d.getMinutes()).slice(-2);}
 function fileBanner(){
   if(!FSA)return '<div class="banner warn"><span><b>Attention : ce navigateur ne sait pas enregistrer dans le fichier.</b> Les notes ne sont gardées que dans le navigateur et disparaissent si l\'historique est effacé. Ouvrez ce fichier avec <b>Chrome</b> ou <b>Edge</b>, ou cliquez sur « Télécharger la grille à jour » à la fin de chaque séance.</span></div>';
-  if(!ui.fh)return '<div class="banner warn"><span><b>Étape indispensable : reliez la grille à un fichier de votre ordinateur.</b> Tant que ce n\'est pas fait, les notes ne sont gardées que dans le navigateur (perdues si l\'historique est effacé). Cliquez sur « Enregistrer dans un fichier », choisissez un dossier (Documents, clé USB, Drive…) et gardez ce nom de fichier. Ensuite tout s\'enregistre dedans automatiquement.</span><button class="btn primary" data-act="linkfile">Enregistrer dans un fichier</button></div>';
+  if(!ui.fh)return '<div class="banner warn"><span><b>Étape indispensable : reliez la grille à un fichier de votre ordinateur.</b> Tant que ce n\'est pas fait, les notes ne sont gardées que dans le navigateur (perdues si l\'historique est effacé). Cliquez sur « Enregistrer dans un fichier », choisissez un dossier (Documents, clé USB, Drive…) et gardez ce nom de fichier. Ensuite tout s\'enregistre dedans automatiquement.</span><span class="row"><button class="btn primary" data-act="linkfile">Enregistrer dans un fichier</button><button class="btn" data-act="importfile">Reprendre les notes d\'un ancien fichier</button></span></div>';
   if(ui.needPerm)return '<div class="banner warn"><span><b>Fichier lié : '+esc(ui.fh.name)+'.</b> Le navigateur demande votre accord pour écrire dedans à nouveau.</span><button class="btn primary" data-act="regrant">Autoriser l\'enregistrement</button></div>';
   return '<div class="banner"><span><b>Enregistrement automatique dans « '+esc(ui.fh.name)+' ».</b> Pour reprendre votre travail, rouvrez ce fichier-là (et non l\'ancien téléchargement). « Version élèves » crée un fichier en lecture seule pour l\'ENT.</span><button class="btn small" data-act="linkfile">Changer de fichier</button></div>';}
 async function writeFile(ask){if(!ui.fh)return false;try{var o={mode:'readwrite'};var p=ui.fh.queryPermission?await ui.fh.queryPermission(o):'granted';if(p!=='granted'&&ask&&ui.fh.requestPermission)p=await ui.fh.requestPermission(o);if(p!=='granted'){ui.needPerm=true;return false;}
@@ -727,7 +736,7 @@ async function linkFile(){if(!FSA){download('Grille_MCV_E31_E32_'+slugName()+'.h
   try{var fh=await window.showSaveFilePicker({suggestedName:'Grille_MCV_E31_E32_'+String(S.classe||'classe').replace(/[^A-Za-z0-9]+/g,'_')+'.html',types:[{description:'Page HTML',accept:{'text/html':['.html']}}]});ui.fh=fh;idb('put',fh);var ok=await writeFile(true);render();toast(ok?'Grille enregistrée dans « '+fh.name+' » : rouvrez ce fichier la prochaine fois':'Écriture impossible dans ce fichier');}catch(e){if(e&&e.name!=='AbortError')toast('Enregistrement annulé : '+(e.message||e));}}
 var fileT=null;function scheduleFile(){ui.fileDirty=true;clearTimeout(fileT);if(ui.fh&&!ui.needPerm)fileT=setTimeout(function(){writeFile(false).then(function(){updateSaveBar();var b=document.querySelector('.banner');if(ui.needPerm)render();});},1500);}
 function buildDoc(state){var json=JSON.stringify(state).replace(/</g,'\\u003c');
-  return SKEL+'<title>Grille MCV E31 E32</title>\n'+HEAD_LINKS+'\n<style id="css">'+CSS_SRC+'</style>\n<div id="app-root"></div>\n<script type="application/json" id="state">'+json+'<\/script>\n<script id="app">'+APP_SRC+'<\/script></body></html>';}
+  return SKEL+'<title>Travaux significatifs E31 &amp; E32</title>\n'+HEAD_LINKS+'\n<style id="css">'+CSS_SRC+'</style>\n<div id="app-root"></div>\n<script type="application/json" id="state">'+json+'<\/script>\n<script id="app">'+APP_SRC+'<\/script></body></html>';}
 function download(name,text){try{var b=new Blob([text],{type:'text/html;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);}catch(e){toast('Téléchargement impossible dans ce navigateur.');}}
 function slugName(){return String(S.classe||'classe').replace(/[^A-Za-z0-9]+/g,'_')+'_'+today();}
 function save(){if(STANDALONE){autoLocal();if(!FSA){download('Grille_MCV_E31_E32_'+slugName()+'.html',buildFileDoc(S));ui.fileDirty=false;render();toast('Grille téléchargée : rouvrez ce fichier la prochaine fois');return;}
